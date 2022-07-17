@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading;
+using System.Linq;
 
 namespace Snake
 {
@@ -18,6 +19,8 @@ namespace Snake
             //ControlGame.GameState gameState;
 
             SnakeModel snake = new SnakeModel();
+            FoodModel food = new FoodModel();
+
             ControlPlayer.StatePlayer controlPlayer = new ControlPlayer.StatePlayer();
             //controlPlayer = ControlPlayer.StatePlayer.down;
             ControlGame.GameState gameState = new ControlGame.GameState();
@@ -29,7 +32,7 @@ namespace Snake
 
             void ReadControl()
             {
-                ConsoleKeyInfo input = Console.ReadKey(true);
+                ConsoleKeyInfo input = Console.ReadKey();
 
                 if (Console.KeyAvailable == true)
                 {
@@ -105,7 +108,7 @@ namespace Snake
             void PutFood()
             {
                 Random random = new Random();
-                FoodModel food = new FoodModel();                
+                             
 
                 food.position.x = random.Next(5, screenWidth - 5);
                 food.position.y = random.Next(4, screenHeigh - 4);                      
@@ -133,16 +136,16 @@ namespace Snake
                     {
 
                         case ControlPlayer.StatePlayer.up:
-                            snake.body[1].y = snake.body[1].y - 1;
+                            snake.body.First().y = snake.body.First().y - 1;
                             break;
                         case ControlPlayer.StatePlayer.down:
-                            snake.body[1].y = snake.body[1].y + 1;
+                            snake.body.First().y = snake.body.First().y + 1;
                             break;
                         case ControlPlayer.StatePlayer.left:
-                            snake.body[1].x = snake.body[1].x - 1;
+                            snake.body.First().x = snake.body.First().x - 1;
                             break;
                         case ControlPlayer.StatePlayer.right:
-                            snake.body[1].x = snake.body[1].x + 1;
+                            snake.body.First().x = snake.body.First().x + 1;
                             break;
                     }
                 }
@@ -150,10 +153,15 @@ namespace Snake
 
             void SnakeDrow()
             {
-                Console.SetCursorPosition(snake.body[1].x, snake.body[1].y);
+                DisplayPosition snakeLastPosition = new DisplayPosition();
+                snakeLastPosition.x = snake.body.Last().x;
+                snakeLastPosition.y = snake.body.Last().y;
+
+                Console.SetCursorPosition(snake.body.First().x, snake.body.First().y);
                 Console.Write('*');
 
-                Console.SetCursorPosition(snake.body[snake.lenght+1].x, snake.body[snake.lenght + 1].y);
+                //Console.SetCursorPosition(snake.body[snake.lenght+1].x, snake.body[snake.lenght + 1].y);
+                Console.SetCursorPosition(snakeLastPosition.x, snakeLastPosition.y);
                 Console.Write(' ');
             }
 
@@ -169,19 +177,24 @@ namespace Snake
                 DisplayPosition snakeHead;
 
                 //Пересечение с игровой областью
-                if (snake.body[1].x == 1) {if (controlPlayer == ControlPlayer.StatePlayer.left){gameState = ControlGame.GameState.gameOver;}}
-                if (snake.body[1].x == screenWidth) { if (controlPlayer == ControlPlayer.StatePlayer.right) { gameState = ControlGame.GameState.gameOver; } }
-                if (snake.body[1].y == 1) { if (controlPlayer == ControlPlayer.StatePlayer.up) { gameState = ControlGame.GameState.gameOver; } }
-                if (snake.body[1].y == screenHeigh) { if (controlPlayer == ControlPlayer.StatePlayer.down) { gameState = ControlGame.GameState.gameOver; } }
+                if (snake.body.First().x == 1) {if (controlPlayer == ControlPlayer.StatePlayer.left){gameState = ControlGame.GameState.gameOver;}}
+                if (snake.body.First().x == screenWidth) { if (controlPlayer == ControlPlayer.StatePlayer.right) { gameState = ControlGame.GameState.gameOver; } }
+                if (snake.body.First().y == 1) { if (controlPlayer == ControlPlayer.StatePlayer.up) { gameState = ControlGame.GameState.gameOver; } }
+                if (snake.body.First().y == screenHeigh) { if (controlPlayer == ControlPlayer.StatePlayer.down) { gameState = ControlGame.GameState.gameOver; } }
 
                 //Пересечение с телом
-                snakeHead = snake.body[1];
-                for (bodyCoursor = 2; bodyCoursor < snake.lenght; bodyCoursor++) 
+                snakeHead = snake.body.First();
+                for (bodyCoursor = 1; bodyCoursor <= snake.lenght; bodyCoursor++) 
                 {
                     if ((snakeHead.x==snake.body[bodyCoursor].x) && (snakeHead.y == snake.body[bodyCoursor].y))
                     {
                         gameState = ControlGame.GameState.gameOver;
                     }
+                }
+
+                if((snakeHead.x== food.position.x)&& (snakeHead.y == food.position.y))
+                {
+                    SnakeEat();
                 }
             }
 
@@ -197,7 +210,7 @@ namespace Snake
 
                 int x = random.Next(5, screenWidth - 5);
                 int y = random.Next(5, screenHeigh - 5);
-                snake.AddBody(0, x, y);
+                snake.AddBody(x, y);
 
 
 
@@ -207,6 +220,7 @@ namespace Snake
             }
 
             Console.Clear();
+            Console.CursorVisible = false;
 
             Console.SetWindowSize(screenWidth, screenHeigh);
 
